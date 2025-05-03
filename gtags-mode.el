@@ -440,6 +440,7 @@ parenthesis, or the end of STRING, whatever comes first."
 	(list (car bounds) (point)
 	      (completion-table-dynamic #'gtags-mode--list-completions)
 	      :exclusive 'no
+	      :category 'gtags-mode
 	      :annotation-function #'gtags-mode-annotation-function
 	      :exit-function #'gtags-mode-exit-function))))
 
