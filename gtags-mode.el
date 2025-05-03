@@ -425,6 +425,14 @@ parenthesis, or the end of STRING, whatever comes first."
 		    (string-match "\\((.*\\)$" whole)))  ; then take until end of string
 	 (output (concat " " (match-string-no-properties 1 whole)))))))
 
+(defun gtags-mode-exit-function (string status)
+  "Insert annotation in buffer."
+  (and-let*
+      ((finishedp (eq status 'finished))
+       (anno (gtags-mode-annotation-function string))
+       (annotrim (substring anno 1 nil)))
+    (insert annotrim)))
+
 (defun gtags-mode-completion-function ()
   "Generate completion list."
   (if (gtags-mode--local-plist default-directory)
@@ -432,7 +440,8 @@ parenthesis, or the end of STRING, whatever comes first."
 	(list (car bounds) (point)
 	      (completion-table-dynamic #'gtags-mode--list-completions)
 	      :exclusive 'no
-	      :annotation-function #'gtags-mode-annotation-function))))
+	      :annotation-function #'gtags-mode-annotation-function
+	      :exit-function #'gtags-mode-exit-function))))
 
 (defmacro gtags-mode--with-feature (feature &rest body)
   (declare (indent 1) (debug t))
