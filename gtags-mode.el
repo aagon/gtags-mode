@@ -454,7 +454,6 @@ parenthesis, or the end of STRING, whatever comes first."
   "Use GNU Global as backend for project, xref, capf and imenu.
 When the buffer is not in a global-project, then all these tools
 rely on their original or user configured default behavior."
-  :global t
   :lighter gtags-mode-lighter
   (cond
    (gtags-mode
