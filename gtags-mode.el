@@ -81,6 +81,7 @@ This variable must be set before enabling gtags-mode"
               (const xref)
               (const completion)
               (const imenu)
+	      (const eldoc)
               (const hooks))
   :risky t)
 
@@ -375,6 +376,35 @@ Return as a list of xref location objects."
      (lambda (name _code _file line)
        (list name line #'gtags-mode--imenu-goto-function)))))
 
+;; eldoc integration =================================================
+(defun major-mode-unremap (mode)
+  "Does the opposite of `major-mode-remap'.
+In case one prefers to use the non treesitter version of some major
+mode."
+  (or (car (or (rassq mode major-mode-remap-alist)
+	       (rassq mode major-mode-remap-defaults)))
+      mode))
+
+(defun gtags-mode-eldoc (callback &rest _ignored)
+  "Document symbol at point."
+  (when-let* ((inproject
+	       (plist-get (gtags-mode--local-plist default-directory) :gtagsroot))
+	      (bounds (bounds-of-thing-at-point 'symbol))
+	      (string (buffer-substring-no-properties (car bounds) (cdr bounds)))
+	      (rawdocstring (car (gtags-mode--filter-find-symbol
+				  '("--definition") string
+				  (lambda (_name code _file _line)
+				    code))))
+	      (mm (major-mode-unremap major-mode))
+	      (fontdocstring (with-temp-buffer
+			       (insert rawdocstring)
+			       (funcall mm)
+			       (font-lock-ensure)
+			       (buffer-string))))
+    (funcall callback fontdocstring
+	     :thing string
+	     :face 'font-lock-function-name-face)))
+
 ;; project integration ===============================================
 
 (cl-defmethod project-root ((project (head :gtagsroot)))
@@ -466,13 +496,16 @@ rely on their original or user configured default behavior."
     (gtags-mode--with-feature 'hooks
       (add-hook 'after-save-hook #'gtags-mode--after-save-hook))
     (gtags-mode--with-feature 'imenu
-      (advice-add imenu-create-index-function :before-until #'gtags-mode--imenu-advice)))
+      (advice-add imenu-create-index-function :before-until #'gtags-mode--imenu-advice))
+    (gtags-mode--with-feature 'eldoc
+      (add-hook 'eldoc-documentation-functions #'gtags-mode-eldoc nil 'local)))
    (t
     (remove-hook 'project-find-functions #'gtags-mode--local-plist)
     (remove-hook 'xref-backend-functions #'gtags-mode--local-plist)
     (remove-hook 'completion-at-point-functions #'gtags-mode-completion-function)
     (remove-hook 'after-save-hook #'gtags-mode--after-save-hook)
-    (advice-remove imenu-create-index-function #'gtags-mode--imenu-advice))))
+    (advice-remove imenu-create-index-function #'gtags-mode--imenu-advice)
+    (remove-hook 'eldoc-documentation-functions #'gtags-mode-eldoc))))
 
 (provide 'gtags-mode)
 ;;; gtags-mode.el ends here
