@@ -361,7 +361,8 @@ mode."
 The annotation is defined as the substring of STRING beginning with the
 first opening parenthesis, and until either the first closing
 parenthesis, or the end of STRING, whatever comes first."
-  (when gtags-mode-use-annotation
+  (when (and gtags-mode-use-annotation
+	     (not (file-remote-p default-directory)))
     (and-let*
 	((whole (car (gtags-mode--filter-find-symbol
 		      '("--definition") string
