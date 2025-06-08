@@ -96,6 +96,7 @@ This variable must be set before enabling gtags-mode"
 
 (defvar-local gtags-mode--global (executable-find gtags-mode-global-executable))
 (defvar-local gtags-mode--gtags (executable-find gtags-mode-gtags-executable))
+(defvar-local gtags-mode--project-root nil)
 
 (defsubst gtags-mode--message (level format-string &rest args)
   "Print log messages when the `gtags-mode-verbose' is greater than LEVEL.
@@ -192,7 +193,9 @@ On success return a list of strings or nil if any error occurred."
 (defun gtags-mode-try-gtags (&optional dir)
   "Determine if DIR is in a GTAGS project.
 Returns a cons applicable for project or xref."
-  (when-let* ((root (gtags-mode--get-root dir)))
+  (when-let* ((root (or gtags-mode--project-root
+			(gtags-mode--get-root dir))))
+    (setq-local gtags-mode--project-root root)
     (cons 'gtags-mode root)))
 
 (defun gtags-mode--get-root (&optional dir)
