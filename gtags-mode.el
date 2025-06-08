@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; GNU Global integration with xref, project, completion-at-point
-;; (capf) and imenu.
+;; (capf), imenu and eldoc.
 
 ;; There are many other packages with their own approach and set of
 ;; more complete/complex features, maps and functionalities; like
